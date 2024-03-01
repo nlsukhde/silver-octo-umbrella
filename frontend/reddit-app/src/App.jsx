@@ -1,6 +1,6 @@
 
 import React from 'react';
-import LoginForm from './assets/log-in-sign-up/log-in-sign-up';
+import LoginForm from './log-in-sign-up';
 import LoveSosaImage from './assets/image/Love Sosa.png';
 
 function App() {
