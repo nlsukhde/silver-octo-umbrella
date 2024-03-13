@@ -4,10 +4,11 @@ import axios from "axios";
 
 const LoginForm = () => {
   const [showLogin, setShowLogin] = useState(true);
-
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [isLoggedIn, setIsLoggedIn] = useState(false); // Added to manage login state
+  const [loggedInUsername, setLoggedInUsername] = useState(""); // To store and display the logged-in username
 
   const toggleForm = () => {
     setShowLogin(!showLogin);
@@ -16,13 +17,30 @@ const LoginForm = () => {
     setConfirmPassword("");
   };
 
-  // Example submit handlers
-  const handleLoginSubmit = (event) => {
-    event.preventDefault(); //
-    //logic for logging in goes here
+  const handleLoginSubmit = async (event) => {
+    event.preventDefault();
     console.log("Logging in with:", username, password);
 
-    console.log("Signing up with:", username, password, confirmPassword);
+    try {
+      const response = await axios.post(
+        "http://127.0.0.1:5000/api/login",
+        {
+          username,
+          password,
+        },
+        {
+          withCredentials: true,
+        }
+      );
+
+      console.log("Log in response:", response.data);
+      setIsLoggedIn(true);
+      setLoggedInUsername(username);
+      setUsername("");
+      setPassword("");
+    } catch (error) {
+      console.error("Login error:", error.response.data);
+    }
   };
 
   const handleSignupSubmit = async (event) => {
@@ -34,15 +52,38 @@ const LoginForm = () => {
         password,
         confirmPassword,
       });
-      console.log("Login response:", response.data);
+      console.log("Sign up response:", response.data);
     } catch (error) {
-      console.error("Login error:", error.response.data);
+      console.error("Sign up error:", error.response.data);
     }
   };
 
+  const handleLogout = async (event) => {
+    event.preventDefault();
+    try {
+      const response = await axios.post(
+        "http://127.0.0.1:5000/api/logout",
+        {},
+        { withCredentials: true }
+      );
+      console.log(response.data.message);
+      setIsLoggedIn(false);
+      setLoggedInUsername("");
+    } catch (error) {
+      console.error(
+        "Logout error:",
+        error.response ? error.response.data : "No response"
+      );
+    }
+  };
   return (
     <div>
-      {showLogin ? (
+      {isLoggedIn ? (
+        <div>
+          <p>Welcome, {loggedInUsername}!</p>
+          <button onClick={handleLogout}>Log Out</button>
+        </div>
+      ) : showLogin ? (
         <form id="login-form" onSubmit={handleLoginSubmit}>
           <h2>Log in</h2>
           <input

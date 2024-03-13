@@ -7,10 +7,10 @@ import secrets
 import hashlib
 
 app = Flask(__name__)
-CORS(app)  # allow CORS
+CORS(app, supports_credentials=True, origins=["http://localhost:8080"])
 
 mongo_client = MongoClient('mongo')
-db = mongo_client["cse312"]
+db = mongo_client["love-sosa"]
 user_collection = db['users']
 
 # backend needs to check that passwords are the same do not trust the frontend
@@ -38,6 +38,43 @@ def signup():
     user_collection.insert_one(entry)
 
     return jsonify({'message': 'User created successfully'}), 201
+
+
+@app.route('/api/logout', methods=['POST'])
+def logout():
+    auth_token = request.cookies.get('authToken')
+
+    if auth_token is None:
+        return jsonify({'error': 'No auth token provided.'}), 400
+
+    # hash the auth token in the cookie
+    hashfunc = hashlib.sha256()
+    hashfunc.update(auth_token.encode())
+    hashed_auth = hashfunc.hexdigest()
+
+    found_token = user_collection.find_one(
+        {'token': hashed_auth})
+
+    if found_token:
+        user_collection.update_one(
+            {"token": hashed_auth},
+            {"$set": {"token": ""}}
+        )
+        response = jsonify({'message': 'User logged out successfully'})
+        # Clear the authToken cookie
+        response.set_cookie(
+            'authToken',
+            '',
+            expires=0,
+            domain='127.0.0.1',
+            path='/',
+            secure=True,
+            httponly=True,
+            samesite='None'
+        )
+        return response, 200
+    else:
+        return jsonify({'error': 'Invalid or expired token'}), 401
 
 
 @app.route('/api/login', methods=['POST'])
@@ -73,7 +110,11 @@ def login():
                 {"username": username},
                 {"$set": {"token": hashed_token}}
             )
-            return jsonify({'message': 'User logged in successfully', 'token': user_token}), 201
+            response = jsonify({'message': 'User logged in successfully'})
+            response.set_cookie('authToken', user_token, httponly=True,
+                                secure=True, samesite='None', max_age=3600)
+
+            return response, 201
         else:
             return jsonify({'error': 'Authentication failed'}), 409
     else:

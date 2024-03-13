@@ -3,7 +3,7 @@ services:
   mongo:
     image: mongo:4.2.5
     ports: 
-      - '27018:27017'
+      - '27019:27017'
   backend:
     build: ./backend
     ports:
