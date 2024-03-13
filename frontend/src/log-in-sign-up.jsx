@@ -21,14 +21,15 @@ const LoginForm = () => {
     event.preventDefault(); //
     //logic for logging in goes here
     console.log("Logging in with:", username, password);
+
+    console.log("Signing up with:", username, password, confirmPassword);
   };
 
   const handleSignupSubmit = async (event) => {
-    print("button");
     event.preventDefault();
     console.log("Signing up with:", username, password, confirmPassword);
     try {
-      const response = await axios.post("http://127.0.0.1:8080/api/signup", {
+      const response = await axios.post("http://127.0.0.1:5000/api/signup", {
         username,
         password,
         confirmPassword,
