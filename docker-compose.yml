@@ -4,22 +4,11 @@ services:
     image: mongo:4.2.5
     ports: 
       - '27019:27017'
-  backend:
+  flaskapp:
     build: ./backend
     ports:
-      - "5000:5000"
-    volumes:
-      - ./backend:/app
+      - "8080:5000"
     environment:
       - FLASK_ENV=development
       - WAIT_HOSTS=mongo:27017
 
-  frontend:
-    build: ./frontend
-    ports:
-      - "8080:3000"
-    volumes:
-      - ./frontend/src:/app/src
-      - ./frontend/public:/app/public
-    environment:
-      - NODE_ENV=development

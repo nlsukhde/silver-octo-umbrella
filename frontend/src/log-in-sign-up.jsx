@@ -23,7 +23,7 @@ const LoginForm = () => {
 
     try {
       const response = await axios.post(
-        "http://127.0.0.1:5000/api/login",
+        "/api/login",
         {
           username,
           password,
@@ -47,7 +47,7 @@ const LoginForm = () => {
     event.preventDefault();
     console.log("Signing up with:", username, password, confirmPassword);
     try {
-      const response = await axios.post("http://127.0.0.1:5000/api/signup", {
+      const response = await axios.post("/api/signup", {
         username,
         password,
         confirmPassword,
@@ -62,7 +62,7 @@ const LoginForm = () => {
     event.preventDefault();
     try {
       const response = await axios.post(
-        "http://127.0.0.1:5000/api/logout",
+        "/api/logout",
         {},
         { withCredentials: true }
       );

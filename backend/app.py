@@ -1,13 +1,37 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template, send_from_directory
 from flask_cors import CORS
 import pymongo
 import bcrypt
 from pymongo import MongoClient
 import secrets
 import hashlib
+import os
 
-app = Flask(__name__)
-CORS(app, supports_credentials=True, origins=["http://localhost:8080"])
+app = Flask(__name__, static_folder='static')
+
+CORS(app)
+
+
+@app.after_request
+def apply_caching(response):
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    return response
+
+
+@app.route('/', defaults={'path': ''})
+@app.route('/<path:path>')
+def serve(path):
+    if path != "" and os.path.exists(os.path.join(app.static_folder, path)):
+        return send_from_directory(app.static_folder, path)
+    else:
+        return send_from_directory(app.static_folder, 'index.html')
+
+
+# Serve static files (CSS, JS, images)
+@app.route('/static/<path:path>')
+def serve_static(path):
+    return send_from_directory('static', path)
+
 
 mongo_client = MongoClient('mongo')
 db = mongo_client["love-sosa"]
@@ -122,4 +146,4 @@ def login():
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, host='0.0.0.0', port=5000)
