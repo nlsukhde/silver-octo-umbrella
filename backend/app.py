@@ -27,7 +27,7 @@ def serve(path):
         return send_from_directory(app.static_folder, 'index.html')
 
 
-# Serve static files (CSS, JS, images)
+# serve static files (CSS, JS, images)
 @app.route('/static/<path:path>')
 def serve_static(path):
     return send_from_directory('static', path)
@@ -48,6 +48,14 @@ def signup():
     username = data.get('username')
     password = data.get('password')
     confirm_pass = data.get('confirmPassword')
+
+    # check if username is taken
+    check_username = user_collection.find_one(
+        {'username': username}
+    )
+
+    if check_username:
+        return jsonify({'error': 'Username taken'}), 400
 
     if (password != confirm_pass):
         return jsonify({'error': 'Passwords do not match'}), 409
@@ -90,13 +98,30 @@ def logout():
             'authToken',
             '',
             expires=0,
-            domain='127.0.0.1',
-            path='/',
             secure=True,
             httponly=True,
-            samesite='None'
         )
         return response, 200
+    else:
+        return jsonify({'error': 'Invalid or expired token'}), 401
+
+
+# validate user on page load
+@app.route('/api/validate_token', methods=['GET'])
+def validate_token():
+    auth_token = request.cookies.get('authToken')
+
+    if auth_token is None:
+        return jsonify({'error': 'No auth token provided.'}), 400
+
+    hashfunc = hashlib.sha256()
+    hashfunc.update(auth_token.encode())
+    hashed_auth = hashfunc.hexdigest()
+
+    found_user = user_collection.find_one({'token': hashed_auth})
+
+    if found_user:
+        return jsonify({'username': found_user['username']}), 200
     else:
         return jsonify({'error': 'Invalid or expired token'}), 401
 
@@ -136,7 +161,7 @@ def login():
             )
             response = jsonify({'message': 'User logged in successfully'})
             response.set_cookie('authToken', user_token, httponly=True,
-                                secure=True, samesite='None', max_age=3600)
+                                secure=True, max_age=3600)
 
             return response, 201
         else:

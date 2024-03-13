@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./log-in-sign-up.css";
 import axios from "axios";
 
@@ -7,8 +7,31 @@ const LoginForm = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [isLoggedIn, setIsLoggedIn] = useState(false); // Added to manage login state
-  const [loggedInUsername, setLoggedInUsername] = useState(""); // To store and display the logged-in username
+  const [isLoggedIn, setIsLoggedIn] = useState(false); //manage login state
+  const [loggedInUsername, setLoggedInUsername] = useState(""); //store and display username
+
+  useEffect(() => {
+    const validateToken = async () => {
+      try {
+        const response = await axios.get("/api/validate_token", {
+          withCredentials: true,
+        });
+        if (response.data && response.data.username) {
+          setIsLoggedIn(true);
+          setLoggedInUsername(response.data.username);
+        }
+      } catch (error) {
+        console.error(
+          "Token validation error:",
+          error.response ? error.response.data : "No response"
+        );
+        setIsLoggedIn(false);
+        setLoggedInUsername("");
+      }
+    };
+
+    validateToken();
+  }, []);
 
   const toggleForm = () => {
     setShowLogin(!showLogin);
