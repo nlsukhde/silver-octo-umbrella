@@ -1,10 +1,9 @@
-version: '3.9'
+version: '3.8'
 services:
-  mongo: 
+  mongo:
     image: mongo:4.2.5
-    ports:
-      - '27019:27017' 
-
+    ports: 
+      - '27018:27017'
   backend:
     build: ./backend
     ports:
@@ -12,12 +11,15 @@ services:
     volumes:
       - ./backend:/app
     environment:
-      - WAIT_HOSTS=mongo:27017 
+      - FLASK_ENV=development
+      - WAIT_HOSTS=mongo:27017
+
   frontend:
-    build:
-      context: ./frontend 
-      dockerfile: Dockerfile
+    build: ./frontend
     ports:
-      - "8080:80"
-    depends_on:
-      - backend
+      - "8080:3000"
+    volumes:
+      - ./frontend/src:/app/src
+      - ./frontend/public:/app/public
+    environment:
+      - NODE_ENV=development
