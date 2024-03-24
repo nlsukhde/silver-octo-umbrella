@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
+import LoveSosaImage from './assets/image/Love Sosa.png';
 import "./log-in-sign-up.css";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const LoginForm = () => {
   const [showLogin, setShowLogin] = useState(true);
@@ -9,6 +11,8 @@ const LoginForm = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoggedIn, setIsLoggedIn] = useState(false); //manage login state
   const [loggedInUsername, setLoggedInUsername] = useState(""); //store and display username
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     const validateToken = async () => {
@@ -58,6 +62,7 @@ const LoginForm = () => {
 
       console.log("Log in response:", response.data);
       setIsLoggedIn(true);
+      console.log("Login successful, isLoggedIn:", isLoggedIn)
       setLoggedInUsername(username);
       setUsername("");
       setPassword("");
@@ -99,12 +104,19 @@ const LoginForm = () => {
       );
     }
   };
+
+  const handlePosts = () => {
+    navigate('/posts');
+  };
+
   return (
     <div>
+      <img src={LoveSosaImage} alt="Love Sosa" />
       {isLoggedIn ? (
         <div>
           <p>Welcome, {loggedInUsername}!</p>
           <button onClick={handleLogout}>Log Out</button>
+          <button onClick={handlePosts}>create a post</button>
         </div>
       ) : showLogin ? (
         <form id="login-form" onSubmit={handleLoginSubmit}>

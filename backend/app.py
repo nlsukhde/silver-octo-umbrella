@@ -36,6 +36,8 @@ def serve_static(path):
 mongo_client = MongoClient('mongo')
 db = mongo_client["love-sosa"]
 user_collection = db['users']
+post_collection = db['posts']
+
 
 # backend needs to check that passwords are the same do not trust the frontend
 
@@ -169,6 +171,39 @@ def login():
     else:
         return jsonify({'error': 'User not found'}), 409
 
+@app.route('/api/posts', methods=['POST'])
+def create_post():
+    auth_token = request.cookies.get('authToken')
+    if not auth_token:
+        return jsonify({'error': 'No auth token provided.'}), 400
 
+    # Verify user from the token as in your validate_token route
+    # Assume getUserFromToken is a utility function you create based on validate_token logic
+    user = getUserFromToken(auth_token)
+    if not user:
+        return jsonify({'error': 'Invalid or expired token'}), 401
+
+    data = request.get_json()
+    content = data.get('content')
+    if not content:
+        return jsonify({'error': 'Content is required'}), 400
+
+    post = {
+        'author': user['username'],
+        'content': content,
+        'created_at': datetime.datetime.now()
+    }
+    post_collection.insert_one(post)
+
+    return jsonify({'message': 'Post created successfully'}), 201
+
+
+@app.route('/api/posts', methods=['GET'])
+def get_posts():
+    posts = list(post_collection.find({}, {'_id': 0}))
+    return jsonify(posts), 200
+
+
+    return jsonify({'message': 'Post created successfully'}), 201
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
