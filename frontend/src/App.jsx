@@ -1,14 +1,19 @@
 
 import React from 'react';
+import {BrowserRouter, Routes, Route} from "react-router-dom";
 import LoginForm from './log-in-sign-up';
-import LoveSosaImage from './assets/image/Love Sosa.png';
+import Posts from './post' ;
+
 
 function App() {
   return (
-    <div>
-      <img src={LoveSosaImage} alt="Love Sosa" />
-      <LoginForm />
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route path ="/" element={<LoginForm />}></Route>
+        <Route path ="/posts" element={<Posts />}></Route>
+
+      </Routes>
+    </BrowserRouter>
   );
 }
 
