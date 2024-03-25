@@ -37,6 +37,7 @@ const Posts = () => {
                 { withCredentials: true }
             );
             console.log("Post liked successfully:", response.data);
+            fetchPosts();
         } catch (error) {
             console.error("Post like error:", error.response ? error.response.data : error);
         }

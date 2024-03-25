@@ -119,11 +119,7 @@ def validate_token():
     if auth_token is None:
         return jsonify({'error': 'No auth token provided.'}), 400
 
-    hashfunc = hashlib.sha256()
-    hashfunc.update(auth_token.encode())
-    hashed_auth = hashfunc.hexdigest()
-
-    found_user = user_collection.find_one({'token': hashed_auth})
+    found_user = getUserFromToken(auth_token, user_collection)
 
     if found_user:
         return jsonify({'username': found_user['username']}), 200
@@ -180,8 +176,6 @@ def create_post():
     if not auth_token:
         return jsonify({'error': 'No auth token provided.'}), 400
 
-    # Verify user from the token as in your validate_token route
-    # Assume getUserFromToken is a utility function you create based on validate_token logic
     user = getUserFromToken(auth_token, user_collection)
 
     if not user:
@@ -262,7 +256,7 @@ def comment_post(post_id):
     post = post_collection.find_one({"post_id": str(post_id)})
     if not post:
         return jsonify({'error': 'Post not found'}), 404
-    
+        
     data = request.get_json()
     comment = data.get("comment")
     if not comment:
