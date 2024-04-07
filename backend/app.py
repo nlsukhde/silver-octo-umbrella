@@ -227,9 +227,10 @@ def like_post(post_id):
     if post["author"] == username:
         return jsonify({'error': 'Authors cannot like their own posts'}), 403
 
-    # user cant like the post twice
+    # unlike the post if already liked
     if username in post.get("user_liked", []):
-        return jsonify({'error': 'You have already liked this post'}), 409
+        post_collection.update_one({"post_id": post_id}, {"$pull": {"user_liked": username}, "$inc": {"like_count": -1}})
+        return jsonify({'message': 'Post unliked successfully'}), 200
     
     # increment the post like_count
     post_collection.update_one(
