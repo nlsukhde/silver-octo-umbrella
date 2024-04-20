@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import PostForm from './PostForm'; // Import the form component
 
+
+socket = new WebSocket('ws://' + window.location.host + '/websocket');
+
 const Posts = () => {
     const [posts, setPosts] = useState([]);
 

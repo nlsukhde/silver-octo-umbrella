@@ -8,10 +8,11 @@ import hashlib
 import os
 import datetime
 import uuid
+from flask_socketio import SocketIO, emit
 
 app = Flask(__name__, static_folder='static')
-
 CORS(app)
+socketio = SocketIO(app,cors_allowed_origins="*")
 
 
 @app.after_request
@@ -268,12 +269,46 @@ def comment_post(post_id):
         {"post_id": post_id},
         {"$push": {"comments": {"user": user["username"], "comment": comment}}}
     )
-
     return jsonify({'message': 'Comment successfully'}), 200
 
-if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)  
 
+#--------------------------------------------websocket--------------------------------------------
+@socketio.on("connect")
+def websocket_connect():
+    print("a websocket user connected")
+
+@socketio.on("disconnect")
+def websocket_connect():
+    print("a websocket user disconnect")
+
+@socketio.on("create_post")
+def websocket_create_post(data):
+    post = {
+        'author': data['author'],
+        'content': data['content'],
+        'created_at': datetime.datetime.now(),
+        "like_count": 0,
+        "user_liked": [],
+        "post_id": str(uuid.uuid4()),
+        "comments": []      # list of dict = {"user": user["username"], "comment": comment}
+    }
+
+    post_collection.insert_one(post)
+    emit('new_post', post, broadcast=True)
+
+
+@socketio.on("create_comment")
+def websocket_comment_post(data):
+    # add the comment to the doc
+    post_collection.update_one(
+        {"post_id": data["post_id"]},
+        {"$push": {"comments": {"user": data['username'], "comment": data['comment']}}}
+    )
+    emit('new_comment', {"user": data['username'], "comment": data['comment']}, broadcast=True)
+
+
+if __name__ == '__main__':
+    socketio.run(debug=True, host='0.0.0.0', port=5000)  
 
 
 
