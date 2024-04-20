@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import PostForm from './PostForm'; // Import the form component\
+import PostForm from './PostForm';
 import "./post.css";
 
 const Posts = () => {
@@ -27,7 +27,7 @@ const Posts = () => {
     }, []);
 
     const handleNewPost = () => {
-        fetchPosts(); // Refetch posts after a new post is created
+        fetchPosts();
     };
 
     const handlePostLike = async (postId) => {
@@ -62,16 +62,16 @@ const Posts = () => {
 
     return (
         <div>
-            <PostForm onNewPost={handleNewPost} /> {/* Pass the refetch function as a prop */}
+            <PostForm onNewPost={handleNewPost} />
             {posts.map((post) => ( 
                 <div key={post.post_id}>
                     <div className="post-header">
                     <img
                             src={post.author_profile_image || '/path/to/default/image.png'}
                             alt={`${post.author}'s profile`}
-                            className="profile-pic"  // make sure you have the .profile-pic class in your CSS
+                            className="profile-pic"
                         />
-                    <small>Post by: {post.author || 'Guest' }</small> {/* Display 'Guest' if no author is provided */}
+                    <small>Post by: {post.author || 'Guest' }</small>
                     </div>
                     <p>{post.content}</p>
 

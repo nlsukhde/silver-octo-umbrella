@@ -24,7 +24,7 @@ const LoginForm = () => {
         if (response.data && response.data.username) {
           setIsLoggedIn(true);
           setLoggedInUsername(response.data.username);
-          setProfileImage(response.data.profileImage);  // Set profile image URL
+          setProfileImage(response.data.profileImage);  //set profile image
         }
       } catch (error) {
         console.error("Token validation error:", error.response ? error.response.data : "No response");

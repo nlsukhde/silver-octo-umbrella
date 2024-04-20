@@ -63,12 +63,12 @@ def signup():
 
     salt = bcrypt.gensalt()
     hashed_pass = bcrypt.hashpw(password.encode(), salt)
-    default_image_url = "https://via.placeholder.com/150"  # Default profile image
+    default_image_url = "https://via.placeholder.com/150"  #default profile image
 
     user_collection.insert_one({
         'username': username,
         'password': hashed_pass,
-        'profile_image': default_image_url,  # Store the default image URL
+        'profile_image': default_image_url,
         'token': ''
     })
 
