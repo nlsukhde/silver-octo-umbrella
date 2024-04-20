@@ -10,6 +10,14 @@ body {
     border-radius: 5px;
 }
 
+.profile-pic {
+    width: 150px;
+    height: 150px; 
+    border-radius: 50%; 
+    object-fit: cover; 
+    overflow: hidden; 
+  }  
+
 input[type="text"], input[type="password"] {
     width: 95%;
     padding: 10px;

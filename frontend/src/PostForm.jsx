@@ -7,11 +7,10 @@ const PostForm = ({ onNewPost }) => {
     const handleSubmit = async (event) => {
         event.preventDefault();
         try {
-            // No need to send 'author' since backend will assign the username based on the user's session
             const response = await axios.post('/api/posts', { content }, { withCredentials: true });
             console.log('Post created:', response.data);
-            setContent(''); // Clear the form after submission
-            onNewPost(); // Trigger parent component to refresh the post list
+            setContent('');
+            onNewPost(); 
         } catch (error) {
             console.error('Error creating post:', error);
         }

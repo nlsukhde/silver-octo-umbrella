@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import PostForm from './PostForm'; // Import the form component
+import PostForm from './PostForm';
+import "./post.css";
 
 
 socket = new WebSocket('ws://' + window.location.host + '/websocket');
@@ -11,6 +12,7 @@ const Posts = () => {
     const fetchPosts = async () => {
         try {
             const result = await axios.get('/api/posts');
+            console.log(result.data);
             if (Array.isArray(result.data)) {
                 setPosts(result.data);
             } else {
@@ -28,7 +30,7 @@ const Posts = () => {
     }, []);
 
     const handleNewPost = () => {
-        fetchPosts(); // Refetch posts after a new post is created
+        fetchPosts();
     };
 
     const handlePostLike = async (postId) => {
@@ -63,11 +65,19 @@ const Posts = () => {
 
     return (
         <div>
-            <PostForm onNewPost={handleNewPost} /> {/* Pass the refetch function as a prop */}
+            <PostForm onNewPost={handleNewPost} />
             {posts.map((post) => ( 
                 <div key={post.post_id}>
-                    <small>Post by: {post.author || 'Guest' }</small> {/* Display 'Guest' if no author is provided */}
+                    <div className="post-header">
+                    <img
+                            src={post.author_profile_image || '/path/to/default/image.png'}
+                            alt={`${post.author}'s profile`}
+                            className="profile-pic"
+                        />
+                    <small>Post by: {post.author || 'Guest' }</small>
+                    </div>
                     <p>{post.content}</p>
+
                     <div>
                         <small>Likes: {post.like_count}</small>
                         <button onClick={() => handlePostLike(post.post_id)}>Like</button>
