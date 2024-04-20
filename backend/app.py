@@ -8,6 +8,7 @@ import hashlib
 import os
 import datetime
 import uuid
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__, static_folder='static')
 
@@ -40,41 +41,39 @@ db = mongo_client["love-sosa"]
 user_collection = db['users']
 post_collection = db['posts']
 
-
+UPLOAD_FOLDER = os.path.join(app.root_path, 'uploads')
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 # backend needs to check that passwords are the same do not trust the frontend
 
 
 @app.route('/api/signup', methods=['POST'])
 def signup():
     data = request.get_json()
-    # check passwords are good and match
 
     username = data.get('username')
     password = data.get('password')
     confirm_pass = data.get('confirmPassword')
 
-
-    # check if username is taken
-    check_username = user_collection.find_one(
-        {'username': username}
-    )
-
+    check_username = user_collection.find_one({'username': username})
     if check_username:
         return jsonify({'error': 'Username taken'}), 400
 
-    if (password != confirm_pass):
+    if password != confirm_pass:
         return jsonify({'error': 'Passwords do not match'}), 409
 
-    pass_to_bytes = password.encode()
     salt = bcrypt.gensalt()
-    hashed_pass = bcrypt.hashpw(pass_to_bytes, salt)
-    # form entry
-    entry = {'username': username,
-             'password': hashed_pass, 'token': ''}
+    hashed_pass = bcrypt.hashpw(password.encode(), salt)
+    default_image_url = "https://via.placeholder.com/150"  # Default profile image
 
-    user_collection.insert_one(entry)
+    user_collection.insert_one({
+        'username': username,
+        'password': hashed_pass,
+        'profile_image': default_image_url,  # Store the default image URL
+        'token': ''
+    })
 
     return jsonify({'message': 'User created successfully'}), 201
+
 
 
 @app.route('/api/logout', methods=['POST'])
@@ -115,17 +114,45 @@ def logout():
 @app.route('/api/validate_token', methods=['GET'])
 def validate_token():
     auth_token = request.cookies.get('authToken')
-
     if auth_token is None:
         return jsonify({'error': 'No auth token provided.'}), 400
 
-    found_user = getUserFromToken(auth_token, user_collection)
-
-    if found_user:
-        return jsonify({'username': found_user['username']}), 200
+    user = getUserFromToken(auth_token, user_collection)
+    if user:
+        return jsonify({'username': user['username'], 'profileImage': user['profile_image']}), 200
     else:
         return jsonify({'error': 'Invalid or expired token'}), 401
+    
 
+@app.route('/api/editprofile', methods=['POST'])
+def edit_profile():
+    auth_token = request.cookies.get('authToken')
+    user = getUserFromToken(auth_token, user_collection)
+
+    if not user:
+        return jsonify({'error': 'Invalid or expired token'}), 401
+
+    file = request.files['profileImage']
+    if file and allowed_file(file.filename):  # Ensure it's a valid image file
+        filename = secure_filename(file.filename)
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(file_path)
+
+        # Update the user's profile image URL in the database
+        new_image_url = f"/uploads/{filename}"  # URL path to access the image
+        user_collection.update_one({'username': user['username']}, {'$set': {'profile_image': new_image_url}})
+
+        return jsonify({'message': 'Profile image updated successfully'}), 200
+    else:
+        return jsonify({'error': 'No image provided or invalid file format'}), 400
+
+def allowed_file(filename):
+    ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+@app.route('/uploads/<filename>')
+def uploaded_file(filename):
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 @app.route('/api/login', methods=['POST'])
 def login():
@@ -189,12 +216,13 @@ def create_post():
 
     post = {
         'author': user['username'],
+        'author_profile_image': user['profile_image'], 
         'content': content,
         'created_at': datetime.datetime.now(),
         "like_count": 0,
         "user_liked": [],
         "post_id": str(uuid.uuid4()),
-        "comments": []      # list of dict = {"user": user["username"], "comment": comment}
+        "comments": [] 
     }
     post_collection.insert_one(post)
 

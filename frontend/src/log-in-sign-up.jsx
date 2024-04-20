@@ -9,8 +9,9 @@ const LoginForm = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [isLoggedIn, setIsLoggedIn] = useState(false); //manage login state
-  const [loggedInUsername, setLoggedInUsername] = useState(""); //store and display username
+  const [isLoggedIn, setIsLoggedIn] = useState(false); // manage login state
+  const [loggedInUsername, setLoggedInUsername] = useState(""); // store and display username
+  const [profileImage, setProfileImage] = useState("");
 
   const navigate = useNavigate();
 
@@ -23,12 +24,10 @@ const LoginForm = () => {
         if (response.data && response.data.username) {
           setIsLoggedIn(true);
           setLoggedInUsername(response.data.username);
+          setProfileImage(response.data.profileImage);  // Set profile image URL
         }
       } catch (error) {
-        console.error(
-          "Token validation error:",
-          error.response ? error.response.data : "No response"
-        );
+        console.error("Token validation error:", error.response ? error.response.data : "No response");
         setIsLoggedIn(false);
         setLoggedInUsername("");
       }
@@ -46,23 +45,13 @@ const LoginForm = () => {
 
   const handleLoginSubmit = async (event) => {
     event.preventDefault();
-    console.log("Logging in with:", username, password);
-
     try {
       const response = await axios.post(
         "/api/login",
-        {
-          username,
-          password,
-        },
-        {
-          withCredentials: true,
-        }
+        { username, password },
+        { withCredentials: true }
       );
-
-      console.log("Log in response:", response.data);
       setIsLoggedIn(true);
-      console.log("Login successful, isLoggedIn:", isLoggedIn)
       setLoggedInUsername(username);
       setUsername("");
       setPassword("");
@@ -73,14 +62,11 @@ const LoginForm = () => {
 
   const handleSignupSubmit = async (event) => {
     event.preventDefault();
-    console.log("Signing up with:", username, password, confirmPassword);
     try {
-      const response = await axios.post("/api/signup", {
-        username,
-        password,
-        confirmPassword,
-      });
-      console.log("Sign up response:", response.data);
+      const response = await axios.post(
+        "/api/signup",
+        { username, password, confirmPassword }
+      );
     } catch (error) {
       console.error("Sign up error:", error.response.data);
     }
@@ -94,7 +80,6 @@ const LoginForm = () => {
         {},
         { withCredentials: true }
       );
-      console.log(response.data.message);
       setIsLoggedIn(false);
       setLoggedInUsername("");
     } catch (error) {
@@ -109,72 +94,79 @@ const LoginForm = () => {
     navigate('/posts');
   };
 
+  const navigateToEditProfile = () => {
+    navigate('/EditProfile');
+  };
+
   return (
     <div>
-      <img src={LoveSosaImage} alt="Love Sosa" />
+      <img src={profileImage || LoveSosaImage} alt="Profile" className="profile-pic" />
       {isLoggedIn ? (
         <div>
           <p>Welcome, {loggedInUsername}!</p>
           <button onClick={handleLogout}>Log Out</button>
-          <button onClick={handlePosts}>create a post</button>
+          <button onClick={handlePosts}>Create a Post</button>
+          <button onClick={navigateToEditProfile}>Edit Profile Picture</button>
         </div>
-      ) : showLogin ? (
-        <form id="login-form" onSubmit={handleLoginSubmit}>
-          <h2>Log in</h2>
-          <input
-            type="text"
-            placeholder="username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-          />
-          <input
-            type="password"
-            placeholder="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-          <button type="submit" id="login-btn">
-            LOG IN
-          </button>
-          <p>Forgot your username or password?</p>
-          <p>
-            New to Love Sosa Reddit?{" "}
-            <span onClick={toggleForm} style={{ cursor: "pointer" }}>
-              Sign up
-            </span>
-          </p>
-        </form>
       ) : (
-        <form id="signup-form" onSubmit={handleSignupSubmit}>
-          <h2>Sign up</h2>
-          <input
-            type="text"
-            placeholder="username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-          />
-          <input
-            type="password"
-            placeholder="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-          <input
-            type="password"
-            placeholder="confirm password"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-          />
-          <button type="submit" id="signup-btn">
-            SIGN UP
-          </button>
-          <p>
-            Already have an account?{" "}
-            <span onClick={toggleForm} style={{ cursor: "pointer" }}>
-              Log in
-            </span>
-          </p>
-        </form>
+        showLogin ? (
+          <form id="login-form" onSubmit={handleLoginSubmit}>
+            <h2>Log in</h2>
+            <input
+              type="text"
+              placeholder="username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+            />
+            <input
+              type="password"
+              placeholder="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+            <button type="submit" id="login-btn">
+              LOG IN
+            </button>
+            <p>Forgot your username or password?</p>
+            <p>
+              New to Love Sosa Reddit?{" "}
+              <span onClick={toggleForm} style={{ cursor: "pointer" }}>
+                Sign up
+              </span>
+            </p>
+          </form>
+        ) : (
+          <form id="signup-form" onSubmit={handleSignupSubmit}>
+            <h2>Sign up</h2>
+            <input
+              type="text"
+              placeholder="username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+            />
+            <input
+              type="password"
+              placeholder="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+            <input
+              type="password"
+              placeholder="confirm password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+            />
+            <button type="submit" id="signup-btn">
+              SIGN UP
+            </button>
+            <p>
+              Already have an account?{" "}
+              <span onClick={toggleForm} style={{ cursor: "pointer" }}>
+                Log in
+              </span>
+            </p>
+          </form>
+        )
       )}
     </div>
   );
