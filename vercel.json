@@ -2,22 +2,20 @@
     "version": 2,
     "builds": [
       {
-        "src": "/frontend/**/*",
-        "use": "@vercel/static"
+        "src": "frontend/package.json",
+        "use": "@vercel/static-build",
+        "config": { "distDir": "frontend/dist" }
       },
       {
-        "src": "/api/app.py",
+        "src": "api/app.py",
         "use": "@vercel/python"
       }
     ],
     "routes": [
-      {
-        "src": "/api/(.*)",
-        "dest": "/api/app.py"
-      },
-      {
-        "src": "/(.*)",
-        "dest": "/frontend/$1"
-      }
+      { "src": "/api/(.*)", "dest": "/api/app.py" },
+      { "src": "/uploads/(.*)", "dest": "/api/uploads/$1" },
+      { "src": "/static/(.*)", "dest": "/api/static/$1" },
+      { "src": "/(.*)", "dest": "/frontend/dist/$1" }
     ]
-  }  
+  }
+  
