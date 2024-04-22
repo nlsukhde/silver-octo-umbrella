@@ -2,10 +2,8 @@ version: '3.8'
 services:
   mongo:
     image: mongo:4.2.5
-    ports: 
-      - '27019:27017'
   flaskapp:
-    build: ./backend
+    build: ./api
     ports:
       - "8080:5000"
     environment:

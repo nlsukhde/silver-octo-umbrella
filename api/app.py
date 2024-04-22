@@ -12,7 +12,6 @@ from werkzeug.utils import secure_filename
 
 app = Flask(__name__, static_folder='static')
 
-CORS(app)
 
 
 @app.after_request
@@ -35,6 +34,9 @@ def serve(path):
 def serve_static(path):
     return send_from_directory('static', path)
 
+
+def handler(event, context):
+    return app(event['path'], event['httpMethod'], event['headers'], event['body'])
 
 mongo_client = MongoClient('mongo')
 db = mongo_client["love-sosa"]
