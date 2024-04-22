@@ -135,13 +135,12 @@ def edit_profile():
         return jsonify({'error': 'Invalid or expired token'}), 401
 
     file = request.files['profileImage']
-    if file and allowed_file(file.filename):  # Ensure it's a valid image file
+    if file and allowed_file(file.filename):
         filename = secure_filename(file.filename)
         file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         file.save(file_path)
 
-        # Update the user's profile image URL in the database
-        new_image_url = f"/uploads/{filename}"  # URL path to access the image
+        new_image_url = f"/uploads/{filename}"
         user_collection.update_one({'username': user['username']}, {'$set': {'profile_image': new_image_url}})
 
         return jsonify({'message': 'Profile image updated successfully'}), 200
