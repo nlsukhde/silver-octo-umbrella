@@ -9,8 +9,9 @@ import os
 import datetime
 import uuid
 from werkzeug.utils import secure_filename
+from http.server import BaseHTTPRequestHandler
 
-app = Flask(__name__, static_folder='static')
+app = Flask(__name__)
 
 
 
@@ -20,23 +21,15 @@ def apply_caching(response):
     return response
 
 
-@app.route('/', defaults={'path': ''})
-@app.route('/<path:path>')
-def serve(path):
-    if path != "" and os.path.exists(os.path.join(app.static_folder, path)):
-        return send_from_directory(app.static_folder, path)
-    else:
-        return send_from_directory(app.static_folder, 'index.html')
+@app.route('/api/<path:path>', methods=['OPTIONS'])
+def options(path):
+    return ('', 204, {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    })
 
 
-# serve static files (CSS, JS, images)
-@app.route('/static/<path:path>')
-def serve_static(path):
-    return send_from_directory('static', path)
-
-
-def handler(event, context):
-    return app(event['path'], event['httpMethod'], event['headers'], event['body'])
 
 mongo_client = MongoClient('mongo')
 db = mongo_client["love-sosa"]
@@ -301,9 +294,6 @@ def comment_post(post_id):
 
     return jsonify({'message': 'Comment successfully'}), 200
 
-if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port)
 
 
 
