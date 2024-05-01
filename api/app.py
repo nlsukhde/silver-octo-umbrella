@@ -9,10 +9,32 @@ import os
 import datetime
 import uuid
 from werkzeug.utils import secure_filename
+import time
+import sys
 
 app = Flask(__name__, static_folder='static')
 
 
+class Client:
+    def __init__(self, ip):
+        self.ip = ip
+        # each element in list is the time the user made a request
+        self.requests_time = [time.time()] # init with the time of the first request
+
+all_request = []
+blocked_client = []
+
+# limit ip address request
+@app.before_request
+def dos_protection():
+    ip = request.headers.get("X-Forwarded-For", request.remote_addr)
+    print(f"request with the client_ip: {ip}", file=sys.stderr)
+
+    # block the ip if it has made >50 requests in 10 sec
+
+
+
+    
 
 @app.after_request
 def apply_caching(response):
@@ -73,6 +95,8 @@ def signup():
         'profile_image': default_image_url,
         'token': ''
     })
+
+    ip = request.headers.get("X-Forwarded-For", request.remote_addr)
 
     return jsonify({'message': 'User created successfully'}), 201
 
@@ -302,7 +326,7 @@ def comment_post(post_id):
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port)
+    app.run(host='0.0.0.0', port=port, debug=True)
 
 
 

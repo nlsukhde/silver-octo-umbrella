@@ -9,4 +9,7 @@ services:
     environment:
       - FLASK_ENV=development
       - WAIT_HOSTS=mongo:27017
-
+  nginx:
+    build: ./nginx
+    ports:  
+      - "80:80"
