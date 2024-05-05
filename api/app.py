@@ -10,6 +10,7 @@ import datetime
 import uuid
 from werkzeug.utils import secure_filename
 import time
+import sys
 
 app = Flask(__name__, static_folder='static')
 
@@ -43,6 +44,7 @@ all_users = {}
 @app.before_request
 def dos_protection():
     ip = request.headers.get("X-Forwarded-For", request.remote_addr)
+    print(f"request with the user_ip: {ip}", file=sys.stderr)
 
     # the time will update when a request is made
     current_time = time.time()
@@ -54,17 +56,20 @@ def dos_protection():
 
         # remove the request if made more than 10 seconds ago
         if that_user.is_blocked(current_time):
+            print(f"that_user is blocked", file=sys.stderr)
             return jsonify({'error': 'Too many requests'}), 429
         
         # check if made >50 requests in the last 10 seconds
         if len(that_user.requests_time) > 50: # change 50 to test
             that_user.block_time = current_time
+            print(f"too many requests", file=sys.stderr)
             return jsonify({'error': 'Too many requests'}), 429
         that_user.requests_time.append(current_time)
         
     # append the new user to the dict
     else:
         all_users[ip] = User(ip, current_time)
+        print(f"added len all_users: {len(all_users)}", file=sys.stderr)
 
 
         
