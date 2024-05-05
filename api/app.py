@@ -71,7 +71,8 @@ def signup():
         'username': username,
         'password': hashed_pass,
         'profile_image': default_image_url,
-        'token': ''
+        'token': '',
+        "post_made": 0
     })
 
     return jsonify({'message': 'User created successfully'}), 201
@@ -223,9 +224,12 @@ def create_post():
         "like_count": 0,
         "user_liked": [],
         "post_id": str(uuid.uuid4()),
-        "comments": [] 
+        "comments": []
     }
     post_collection.insert_one(post)
+
+    # increment the post_count of the user
+    user_collection.update_one({"username": user["username"]}, {"$inc": {"post_made": 1}})
 
     return jsonify({'message': 'Post created successfully'}), 201
 
@@ -233,7 +237,13 @@ def create_post():
 @app.route('/api/posts', methods=['GET'])
 def get_posts():
     posts = list(post_collection.find({}, {'_id': 0}))
-    return jsonify(posts), 200
+    updated_posts = []
+    for post in posts:
+        author = user_collection.find_one({"username": post["author"]})
+        post["post_made"] = author.get("post_made", 0)
+        updated_posts.append(post)
+
+    return jsonify(updated_posts), 200
 
 
 @app.route('/api/posts/<post_id>/like', methods=['POST'])
