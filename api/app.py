@@ -60,6 +60,7 @@ def dos_protection():
             return jsonify({'error': 'Too many requests'}), 429
         
         # check if made >50 requests in the last 10 seconds
+        #yes
         if len(that_user.requests_time) > 50: # change 50 to test
             that_user.block_time = current_time
             print(f"too many requests", file=sys.stderr)
