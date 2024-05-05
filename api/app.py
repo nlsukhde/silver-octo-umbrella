@@ -10,31 +10,64 @@ import datetime
 import uuid
 from werkzeug.utils import secure_filename
 import time
-import sys
 
 app = Flask(__name__, static_folder='static')
 
 
-class Client:
-    def __init__(self, ip):
+class User:
+    def __init__(self, ip, request_time):
         self.ip = ip
         # each element in list is the time the user made a request
-        self.requests_time = [time.time()] # init with the time of the first request
+        self.requests_time = [request_time] # init with the time of the first request time
+        self.block_time = None
 
-all_request = []
-blocked_client = []
+    # update the time passed in with all the requests time
+    def update_time(self, current_time):
+        new_requests_time = []
+        for request in self.requests_time:   
+            if current_time - request <= 10:
+                new_requests_time.append(request)
+        self.requests_time = new_requests_time
+
+    # check if blocked
+    def is_blocked(self, current_time):
+        if self.block_time is not None:
+            if current_time - self.block_time < 30:
+                return True
+        return False
+
+# dict that holds all active users
+all_users = {}
 
 # limit ip address request
 @app.before_request
 def dos_protection():
     ip = request.headers.get("X-Forwarded-For", request.remote_addr)
-    print(f"request with the client_ip: {ip}", file=sys.stderr)
 
-    # block the ip if it has made >50 requests in 10 sec
+    # the time will update when a request is made
+    current_time = time.time()
+
+    # check if the user in the all_users
+    if ip in all_users:
+        that_user = all_users[ip]
+        that_user.update_time(current_time)
+
+        # remove the request if made more than 10 seconds ago
+        if that_user.is_blocked(current_time):
+            return jsonify({'error': 'Too many requests'}), 429
+        
+        # check if made >50 requests in the last 10 seconds
+        if len(that_user.requests_time) > 50: # change 50 to test
+            that_user.block_time = current_time
+            return jsonify({'error': 'Too many requests'}), 429
+        that_user.requests_time.append(current_time)
+        
+    # append the new user to the dict
+    else:
+        all_users[ip] = User(ip, current_time)
 
 
-
-    
+        
 
 @app.after_request
 def apply_caching(response):
