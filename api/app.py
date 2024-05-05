@@ -132,7 +132,8 @@ def signup():
         'username': username,
         'password': hashed_pass,
         'profile_image': default_image_url,
-        'token': ''
+        'token': '',
+        "post_made": 0
     })
 
     ip = request.headers.get("X-Forwarded-For", request.remote_addr)
@@ -290,13 +291,22 @@ def create_post():
     }
     post_collection.insert_one(post)
 
+    # increment the post_count of the user
+    user_collection.update_one({"username": user["username"]}, {"$inc": {"post_made": 1}})
+
     return jsonify({'message': 'Post created successfully'}), 201
 
 
 @app.route('/api/posts', methods=['GET'])
 def get_posts():
     posts = list(post_collection.find({}, {'_id': 0}))
-    return jsonify(posts), 200
+    updated_posts = []
+    for post in posts:
+        author = user_collection.find_one({"username": post["author"]})
+        post["post_made"] = author.get("post_made", 0)
+        updated_posts.append(post)
+
+    return jsonify(updated_posts), 200
 
 
 @app.route('/api/posts/<post_id>/like', methods=['POST'])

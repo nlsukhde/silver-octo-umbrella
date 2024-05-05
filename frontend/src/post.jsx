@@ -71,7 +71,7 @@ const Posts = () => {
                             alt={`${post.author}'s profile`}
                             className="profile-pic"
                         />
-                    <small>Post by: {post.author || 'Guest' }</small>
+                    <small>Post by: {post.author || 'Guest' } - Posts already made: {post.post_made}</small>
                     </div>
                     <p>{post.content}</p>
 
